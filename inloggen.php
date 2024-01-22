@@ -1,4 +1,6 @@
 <?php
+session_start(); // Start the session
+
 include_once("functions.php");
 
 // Get user input and sanitize it
@@ -15,30 +17,38 @@ $db = ConnectDB();
 $sql = "SELECT relaties.ID AS RID, rollen.Waarde AS Rol, Landingspagina, Wachtwoord
         FROM relaties
         LEFT JOIN rollen ON relaties.FKrollenID = rollen.ID
-        WHERE BINARY Email = ?";
+        WHERE BINARY Email = :email";
 $stmt = $db->prepare($sql);
 if (!$stmt) {
-    die('Error preparing statement: ' . $db->error);
+    die('Error preparing statement: ' . print_r($db->errorInfo(), true));
 }
 
-$stmt->bind_param("s", $email);
+$stmt->bindParam(":email", $email, PDO::PARAM_STR);
 if (!$stmt->execute()) {
-    die('Error executing statement: ' . $stmt->error);
+    die('Error executing statement: ' . print_r($stmt->errorInfo(), true));
 }
 
-$result = $stmt->get_result();
-$inlog = $result->fetch_assoc();
-$stmt->close();
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->closeCursor();
 
 // Debugging: Output retrieved password from the database
-var_dump("Database Password: " . $inlog['Wachtwoord']);
+if ($result !== false) {
+    var_dump("Database Password: " . $result['Wachtwoord']);
 
-$redirect_url = 'admin.php?NOAccount';
-if ($inlog && md5($password) === $inlog['Wachtwoord']) {
-    $redirect_url = 'admin.php?RID=' . $inlog['RID'];
+    $redirect_url = 'admin.php?NOAccount';
+    if (md5($password) === $result['Wachtwoord']) {
+        // Start a session and store user information
+        $_SESSION['user_id'] = $result['RID'];
+        $_SESSION['user_role'] = $result['Rol'];
+
+        $redirect_url = 'index.php'; // Set the index page as the redirect URL after successful login
+    }
+} else {
+    // Handle the case where the email is not found in the database
+    $redirect_url = 'admin.php?EmailNotFound';
 }
 
 // Redirect to the specified page
-header("Location: " . $redirect_url);
+header("index.php: " . $redirect_url);
 exit();
 ?>
