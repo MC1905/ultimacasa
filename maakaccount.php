@@ -19,6 +19,7 @@ echo '
     <div class="container">
         <div class="col-sm-4 col-md-6 col-lg-4 col-sm-offset-4 col-md-offset-3 col-lg-offset-4">
             <h4 class="text-center">Ultima Casa account aanvragen</h4>
+            <p>Door op "Maak account" te klikken, geeft u toestemming aan ons om uw persoonlijke gegevens op te slaan.</p>
             <table>
                 <tr>
                     <th>&nbsp;</th>
