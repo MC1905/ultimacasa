@@ -10,8 +10,8 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Check if the logged-in user has the required permission (ID 529 for admin access)
-if ($_SESSION['user_id'] != 529) {
+// Check if the user has admin permission
+if ($_SESSION['user_role'] !== 'admin') {
     // Redirect to an unauthorized page if the user does not have permission
     header("Location: unauthorized.php");
     exit();
@@ -19,28 +19,33 @@ if ($_SESSION['user_id'] != 529) {
 
 $db = ConnectDB();
 
-// Check if the accessed RID matches the logged-in user's ID and is in the database
-$allowed_ids = array(529);
-$relatieid = $_GET['RID'];
+// Validate and sanitize user input
+$relatieid = filter_input(INPUT_GET, 'RID', FILTER_VALIDATE_INT);
 
-// Query the database to check if the user ID exists
-$sql_check_id = "SELECT COUNT(*) FROM relaties WHERE ID = " . $relatieid;
-$count = $db->query($sql_check_id)->fetchColumn();
-
-if ($count == 0 || !in_array($relatieid, $allowed_ids)) {
-    // Redirect to an unauthorized page if the user is trying to access another user's admin page
+if ($relatieid === false) {
+    // Invalid input, redirect to an unauthorized page
     header("Location: unauthorized.php");
     exit();
 }
 
-$sql = "SELECT ID, 
-               Naam, 
-               Email, 
-               Telefoon
-          FROM relaties
-         WHERE ID = " . $relatieid;
+// Use prepared statement to avoid SQL injection
+$sql_check_id = "SELECT COUNT(*) FROM relaties WHERE ID = :relatieid";
+$stmt = $db->prepare($sql_check_id);
+$stmt->bindParam(':relatieid', $relatieid, PDO::PARAM_INT);
+$stmt->execute();
+$count = $stmt->fetchColumn();
 
-$gegevens = $db->query($sql)->fetch();
+if ($count == 0) {
+    // Redirect to an unauthorized page if the user ID does not exist
+    header("Location: unauthorized.php");
+    exit();
+}
+
+$sql = "SELECT ID, Naam, Email, Telefoon FROM relaties WHERE ID = :relatieid";
+$stmt = $db->prepare($sql);
+$stmt->bindParam(':relatieid', $relatieid, PDO::PARAM_INT);
+$stmt->execute();
+$gegevens = $stmt->fetch();
 
 echo 
 '<!DOCTYPE html>
