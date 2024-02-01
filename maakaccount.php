@@ -45,6 +45,12 @@ echo '
                                 <label for="Telefoon">Mobiel telefoonnummer:</label>
                                 <input type="tel" class="form-control" id="Telefoon" name="Telefoon" placeholder="Telefoonnummer" pattern="' . $telefoonpattern . '" required>
                             </div>
+                            <div class="form-group">
+                                <label for="Toestemming">
+                                    <input type="checkbox" id="Toestemming" name="Toestemming" required>
+                                    Ik ga akkoord met de verwerking van mijn persoonlijke gegevens.
+                                </label>
+                            </div>
                             <div class="form-group"><br><br>
                                 <button type="submit" class="action-button" title="Uw account aanmaken">Maak account</button>
                                 <button class="action-button"><a href="index.html">Annuleren</a></button>
